@@ -1,5 +1,6 @@
 const path = require('path');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
+const ExtractTextPlugin = require("extract-text-webpack-plugin");
 
 conf = {
   entry: {
@@ -7,6 +8,8 @@ conf = {
      print: './src/print.js'
   },
   plugins: [
+  	// выходной файл стилей будет таким
+  	new ExtractTextPlugin("styles.css"),
      //new CleanWebpackPlugin(['dist'])
   ],
   output: {
@@ -28,18 +31,40 @@ conf = {
        },
        {
          test: /\.s?css$/,
-         use: [
-         	// просто считывает данные из файла без интерпритации
-           'style-loader',
-           // заносит в файл
-           'css-loader',
-           'sass-loader'
-         ]
+         use: ExtractTextPlugin.extract({
+         	// отменяет style-loader, по сути тут не нужно, так как мы его не подключаем
+        	fallback: 'style-loader',
+	        use: [
+	          { loader: "css-loader" },     
+	          { 
+	            loader: "sass-loader",
+	            // options: {
+	            //   includePaths: [
+	            //     path.resolve("./src/css")
+	            //   ]
+	            // }
+	          },
+	        ]
+      	}),
+         // use: [
+         // 	// просто считывает данные из файла без интерпритации
+         //   'style-loader',
+         //   // заносит в файл
+         //   'css-loader',
+         //   'sass-loader'
+         // ]
        },
        {
          test: /\.(png|svg|jpg|gif)$/,
          use: [
-           'file-loader'
+           {
+           	loader: 'file-loader',
+           	options: {
+           		name: '[path][name].[ext]',
+           		outputPath: 'images/',
+           		publicPath: 'images/'
+           	}
+           }
          ]
        },
        {
@@ -56,7 +81,6 @@ conf = {
 };
 
 module.exports = (env, options) => {
-	console.log(options);
 	let production = options.mode === 'production';
 
 	// если прод, то в отдельный файл источнк, иначе в этот же, чтобы было удобнее
