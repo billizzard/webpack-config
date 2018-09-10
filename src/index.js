@@ -2,8 +2,8 @@ import _ from 'lodash';
 import './style.css';
 import './styles/styles.scss';
 //import Icon from './icon.png';
-import printMe from './print.js';
-import someMath from './esLast.js';
+import printMe from './js/public/print.js';
+import someMath from './js/public/esLast.js';
 
 function component() {
   let element = document.createElement('div');
