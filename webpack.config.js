@@ -5,11 +5,15 @@ const webpack = require('webpack');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin')
 
 conf = {
+	// чтобы в entry не писать постоянно src для всех энтрипоинтов, можно писать так
+	context: __dirname + '/src',
   entry: {
-     app: './src/index.js',
+     app: './index.js',
      //print: './src/print.js'
   },
   plugins: [
+  	// чтобы не создавал файлы в директории если появились ошибки какие-то
+  	new webpack.NoEmitOnErrorsPlugin﻿(),
   	// выходной файл стилей будет таким
   	new ExtractTextPlugin("styles.css"),
      //new CleanWebpackPlugin(['dist'])
@@ -97,7 +101,35 @@ conf = {
    	modules: ['node_modules'],
    	moduleExtensions: ['*-loader', '*'],
    	extensions: ['*', '.js'],
-   }
+   },
+
+     
+    //new webpack.optimize.CommonsChunkPlugin({
+    	// имя файла
+    	//name: "common",
+    	// по умолчанию, чтобы плагин вынес общий код, он должен присутствовать во всех точках входа, если в хоть
+    	// одной не присутствует, то это не вынесется в отдельный код. 
+    	// этой опцией мы задаем, в скольки минимум файлах должен присутствовать общий код
+    	//minChunks: 2,
+    	// также можем явно указать, что общее нужно брать только из определенных точек входа
+    	// chunks: ['app', 'print'],
+
+    	// если нужно еще с нескольих файлов собрать общее, можно еще один такой же плагин создать, только имя должно быть другое
+    //})
+
+   optimization: {
+   		// выделяет общее в точках сборки и выносит в отдельный файл
+	    splitChunks: {
+	    	// по умолчанию, чтобы плагин вынес общий код, он должен присутствовать во всех точках входа, если в хоть
+	    	// одной не присутствует, то это не вынесется в отдельный код. 
+	    	// этой опцией мы задаем, в скольки минимум файлах должен присутствовать общий код
+	      minChunks: 1,
+	      // имя, если true будет автоматом задаваться, если нет то можно функцию прописать которая будет раздавать имена
+	      name: true,
+	      // также можем явно указать, что общее нужно брать только из определенных точек входа
+	      chunks: 'all',
+	    }
+	}
 
    // будет следить за файлами и пересобирать проект по сохранению
    // также используется кэш при пересборке, и она происходит быстрее чем руками
@@ -127,21 +159,21 @@ module.exports = (env, options) => {
 	conf.devtool = production ? false : 'eval-sourcemap'
 	//conf.watch = !production;
 
-
-	conf.optimization = {
-		// если mode не продакшн, то будет отрублен в любом случае, так чт  проверку можно не ставить
-		minimizer: [
-			new UglifyJsPlugin({
-				uglifyOptions: {
-					compress: {
-						warnings: false,
-						drop_console: true,
-						unsafe: true,
-					},
-				}
-			})
-		]
+	if (!conf.optimization) {
+		conf.optimization = {};
 	}
+
+	conf.optimization.minimizer = [
+		new UglifyJsPlugin({
+			uglifyOptions: {
+				compress: {
+					warnings: false,
+					drop_console: true,
+					unsafe: true,
+				},
+			}
+		})
+	];
 	
 	return conf;
 }
